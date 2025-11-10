@@ -76,7 +76,7 @@ class Card():
         self.discovered = False
 
     def __eq__(self, other):
-        if other == None:
+        if not isinstance(other, Card):
             return False
         return self.suit == other.suit and self.value == other.value
 
@@ -144,12 +144,13 @@ class Game():
             card = self.draw.pop()
             card.discover()
             self.pile.append(card)
+            return True
         else:
             while(len(self.pile) > 0):
                 card = self.pile.pop()
                 card.hide()
                 self.draw.append(card)
-
+            return len(self.draw) > 0
     #Attempt to collect a card from a column.
     #0 -> Pile
     #1-7 -> Tableau
@@ -293,68 +294,3 @@ class Game():
         
         return json.dumps(obj)
         
-def main():
-    game = Game()
-    while not game.win():
-        game.printGame()
-        move = input().split(' ')
-
-        print(move)
-        if len(move) == 0:
-            continue
-
-        match move[0]:
-            case 'tt':
-                if len(move) != 4:
-                    continue
-
-                frm = int(move[1]) - 1
-                to = int(move[2]) - 1
-                ct = int(move[3])
-
-                if(not game.move(frm, to, ct)):
-                    print("Did not work") 
-            case 'tc':
-                if len(move) != 2:
-                    continue
-
-                col = int(move[1]) 
-
-                if not game.collect(col):
-                    print("Did not work")
-            case 'd':
-                if len(move) != 1:
-                    continue
-
-                game.take()
-            case 'pt':
-                if len(move) != 2:
-                    continue
-
-                to = int(move[1]) - 1
-
-                if not game.movePile(to):
-                    print("Did not work")
-
-            case 'pc':
-                if len(move) != 1:
-                    continue
-
-                if not game.collect(0):
-                    print("Did not work")
-            case 'ft':
-                if len(move) != 3:
-                    continue
-
-                suit = int(move[1]) - 1
-                to = int(move[2]) - 1
-
-                if not game.moveFoundation(suit, to):
-                    print("Did not work")
-            case 'json':
-                print(game.json())
-
-    print(Fore.MAGENTA + "You ~~win~~!!! <3 👏👏👏👏")
-    print("You are special." + Fore.RESET)
-
-main()
