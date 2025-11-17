@@ -1,6 +1,6 @@
 from game import Game, Card
 from colorama import Fore, Back, Style
-from ai import extract, genCols, numCmd
+from ai import extract, genCols, numCmd, trainModel, numCmd_r
 import pandas as pd
 import json
 
@@ -62,10 +62,17 @@ def chooseMove(move, game: Game):
 
 def main():
     game = Game()
-    data = pd.DataFrame(columns=genCols())
+    cmd_predict = trainModel("data/cmd.csv", "Cmd")
+
+    cols = genCols()
+    cols.append('Cmd')
+    data = pd.DataFrame(columns=cols)
+
     while not game.win():
         game.printGame()
         state = extract(json.loads(game.json()))
+        pred_move = cmd_predict.predict(state.to_frame().T)
+        print(Fore.MAGENTA + f"Predicting  {numCmd_r(pred_move[0])}" + Fore.RESET)
         # print(Fore.YELLOW + str(data.info()) + Fore.RESET)
 
         move = input().split(' ')
@@ -78,12 +85,12 @@ def main():
         if result == False:
             print("Did not work")
         else:
-            state.loc[0, 'Cmd'] = numCmd(move[0])
-            data = pd.concat([data, state])
+            state['Cmd'] = numCmd(move[0])
+            data = pd.concat([data, state.to_frame().T])
 
 
     #Save winning data!
-    data.to_csv("output.csv", 'a')
+    data.to_csv("data/cmd.csv", mode='a', header=False)
 
     print(Fore.MAGENTA + "You ~~win~~!!! <3 👏👏👏👏")
     print("You are special." + Fore.RESET)

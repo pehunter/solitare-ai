@@ -6,6 +6,7 @@ import json
 import random
 import pandas as pd
 import numpy as np
+from sklearn import linear_model
 
 #Get all free cards (cards that can be appended to)
 def getFree(data: dict) -> list[Card | bool]:
@@ -145,7 +146,6 @@ def genCols():
         cols.append(f"Pile_{t}")
     cols.append("Empty")
     cols.append("Draw")
-    cols.append("Cmd")
     return cols
 
 #Extract data from game state.
@@ -159,8 +159,9 @@ def genCols():
 # 7. Cards in draw? (1) ✔️
 # 8. Empty space available? (1) ✔️
 # 9. All discovered cards (A NUMBER)
-def extract(data: dict) -> pd.DataFrame:
-    cardData = np.zeros((48, 6), dtype=np.int8)
+def extract(data: dict) -> pd.Series:
+    cols = genCols()
+    cardData = pd.Series(data=np.zeros(len(cols), dtype=np.int8), index=cols)
     empty = False
     draw = False
 
@@ -171,7 +172,7 @@ def extract(data: dict) -> pd.DataFrame:
         if len(col) > 0:
             #Set bottom card
             bottom = Card(col[-1]["suit"], col[-1]["value"])
-            cardData[get48Idx(bottom)][0] = 1
+            cardData["Bottom_"+get48Title(get48Idx(bottom))]= 1
 
             #Set top card
             x = 0
@@ -179,11 +180,13 @@ def extract(data: dict) -> pd.DataFrame:
                 hidden = hidden + 1
                 x = x + 1
             top = Card(col[x]["suit"], col[x]["value"])
-            cardData[get48Idx(top)][1] = 1
+            # cardData[get48Idx(top)][1] = 1
+            cardData["Top_"+get48Title(get48Idx(top))]= 1
             #Get middle cards
             while x < len(col):
                 middle = Card(col[x]["suit"], col[x]["value"])
-                cardData[get48Idx(middle)][2] = 1
+                # cardData[get48Idx(middle)][2] = 1
+                cardData["Move_"+get48Title(get48Idx(middle))]= 1
                 x = x + 1
         else:
             empty = True
@@ -192,14 +195,17 @@ def extract(data: dict) -> pd.DataFrame:
         val = data["foundation"][suit]["value"]
         for z in range(1, val + 1):
             card = Card(data["foundation"][suit]["suit"], z)
-            cardData[get48Idx(card)][3] = 1
+            cardData["Collect_"+get48Title(get48Idx(card))]= 1
+            # cardData[get48Idx(card)][3] = 1
         if(val > 0):
             card = Card(data["foundation"][suit]["suit"], val)
-            cardData[get48Idx(card)][4] = 1
+            cardData["Foundation_"+get48Title(get48Idx(card))]= 1
+            # cardData[get48Idx(card)][4] = 1
 
     if(data["pile"] != False):
         pile = Card(data["pile"]["suit"], data["pile"]["value"])
-        cardData[get48Idx(pile)][5] = 1
+        cardData["Pile_"+get48Title(get48Idx(pile))]= 1
+        # cardData[get48Idx(pile)][5] = 1
     
     if(data["draw"]):
         draw = True
@@ -209,12 +215,13 @@ def extract(data: dict) -> pd.DataFrame:
     # print(f"Draw: {draw}")
 
 
-    cols = genCols()
-    shaped = np.append(cardData, [empty, draw, 9])
-    shaped = np.reshape(shaped, (1, 48*6 + 3))
-    df = pd.DataFrame(shaped, columns=cols)
+    cardData["Empty"] = int(empty)
+    cardData["Draw"] = int(draw)
+    # shaped = np.append(cardData, [empty, draw, 9])
+    # shaped = np.reshape(shaped, (1, 48*6 + 3))
+    # df = pd.DataFrame(shaped, columns=cols)
     
-    return df
+    return cardData
 
 def numCmd(cmd: str):
     match cmd:
@@ -224,7 +231,32 @@ def numCmd(cmd: str):
         case 'pt': return 3
         case 'pc': return 4
         case 'ft': return 5
-        case _: return "Yeah shouldn't happen"
+        case _: return 6
+
+def numCmd_r(idx: int):
+    match idx:
+        case 0: return 'tt'
+        case 1: return 'tc'
+        case 2: return 'd'
+        case 3: return 'pt'
+        case 4: return 'pc'
+        case 5: return 'ft'
+        case 6: return '_'
+
+def trainModel(csvPath: str, outCol: str):
+    #Load CSV into df
+    x = pd.read_csv(csvPath, header=0, index_col=0)
+
+    #Capture x and y & drop outCol
+    y = x.loc[:, outCol]
+    x = x.drop([outCol], axis=1)
+
+    #Create LR
+    logr = linear_model.LogisticRegression(max_iter=612)
+    logr.fit(x,y)
+
+    #Return
+    return logr
 
 # def main():
 #     demo = {
