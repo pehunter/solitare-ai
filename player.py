@@ -7,6 +7,9 @@ import random
 
 #Chooses a move from a move "object"
 def chooseMove(move: dict, game: Game):
+    if len(move) == 0:
+        return False
+
     match move["cmd"]:
         case 'tt':
             if len(move) != 4:
@@ -60,7 +63,6 @@ def chooseMove(move: dict, game: Game):
             return True
         case _:
             return False
-    return move[0]
 
 #Returns the "best guess" card on the edge
 def nearestCard(expected: Card, game_state: dict) -> Card:
@@ -214,8 +216,12 @@ def decipherMove(pred_move: dict, available: list, game_state: dict):
     print(Fore.YELLOW + f"Could not fully decipher move, choosing a random {move["cmd"]}" + Fore.RESET)
     return move
 
+#Make a move fuzzy
+def fuzzy():
+    pass
+
 #Create a move object from an input list
-def moveFromInput(input: list):
+def moveFromInput(input: list) -> dict:
     match input[0]:
         case 'tt':
             if len(input) != 4:
@@ -261,22 +267,23 @@ def main():
         print(Fore.MAGENTA + f"Predicting  {numCmd_r(pred_move[0])}" + Fore.RESET)
         # print(Fore.YELLOW + str(data.info()) + Fore.RESET)
 
-        move = input().split(' ')
+        move = moveFromInput(input().split(' '))
 
         # print(move)
-        if len(move) == 0:
-            continue
+        # if len(move) == 0:
+            # continue
 
         result = chooseMove(move, game)
         if result == False:
             print("Did not work")
         else:
-            state['Cmd'] = numCmd(move[0])
-            data = pd.concat([data, state.to_frame().T])
+            ai.log(state, move)
+            # state['Cmd'] = numCmd(move[0])
+            # data = pd.concat([data, state.to_frame().T])
 
 
     #Save winning data!
-    data.to_csv("data/cmd.csv", mode='a', header=False)
+    # data.to_csv("data/cmd.csv", mode='a', header=False)
 
     print(Fore.MAGENTA + "You ~~win~~!!! <3 👏👏👏👏")
     print("You are special." + Fore.RESET)

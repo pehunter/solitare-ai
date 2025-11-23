@@ -131,12 +131,6 @@ def get48Title(index: int):
         case 12: value = 'K'
         case _: value = value
     return f"{suit}{value}"
-#Get the card's "name"
-# def getName(card: Card):
-    # st = ""
-    # match card.suit:
-        # case 0: st = "H"
-    # return f"{card.suit}"
 
 #Generate the columns for Pandas DF
 def genCols():
@@ -273,10 +267,23 @@ def trainModel(csvPath: str, outCol: str):
     #Return
     return logr
 
+#Get columns from first line of csv
+def getColumns(csvPath: str):
+    with open(csvPath) as csv:
+        return csv.readline().split(',')
+    return []
+
 class AIPlayer():
     def __init__(self):
         #Load models
         self.cmdModel = trainModel("data/cmd.csv", "Cmd")
+
+        #Setup dataframes for collected data
+        basecols = genCols()
+        cards = [str(x) for x in list(range(48))]
+
+        self.cmdData = pd.DataFrame(columns=(basecols + ['Cmd']))
+        self.ttData = pd.DataFrame(columns=(basecols + ['Card']))
     
     #Predict next move based on game state
     def nextMove(self, gameState: pd.DataFrame):
@@ -312,3 +319,20 @@ class AIPlayer():
                 print("An unknown move was selected?")
         
         return wtd
+    
+    #Log moves into CSVs
+    def log(self, state: pd.Series, move: dict):
+        toDF = state.to_frame().T
+
+        #Cmd
+        state['Cmd'] = numCmd(move["cmd"])
+        self.cmdData = pd.concat([self.cmdData, toDF])
+
+        #Save based on command
+        match move["cmd"]:
+            case 'tt':
+                
+    
+    #Save data to CSVs
+    def save(self):
+        self.cmdData.to_csv("data/cmd.csv", mode='a', header=False)
