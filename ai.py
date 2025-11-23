@@ -6,7 +6,7 @@ import json
 import random
 import pandas as pd
 import numpy as np
-from sklearn import linear_model
+from sklearn import linear_model, model_selection, metrics
 
 #Get all free cards (cards that can be appended to)
 def getFree(data: dict) -> list[Card | bool]:
@@ -108,6 +108,12 @@ def findAllMoves(data: dict):
 #Get the card's index in a 48 equation
 def get48Idx(card: Card):
     return card.suit*12 + (card.value - 1)
+
+#Get card from the 48 index
+def get48Card(index: int):
+    suit = int(index/12)
+    value = (index % 12) + 1
+    return Card(suit, value)
 
 def get48Title(index: int):
     suit = int(index/12)
@@ -251,84 +257,58 @@ def trainModel(csvPath: str, outCol: str):
     y = x.loc[:, outCol]
     x = x.drop([outCol], axis=1)
 
+    #Train/test
+    x_train, x_test, y_train, y_test = model_selection.train_test_split(x, y, random_state=612, test_size=0.25, shuffle=True)
+
+
     #Create LR
     logr = linear_model.LogisticRegression(max_iter=612)
-    logr.fit(x,y)
+    logr.fit(x_train,y_train)
+
+    #Test LR
+    y_pred = logr.predict(x_test)
+    acc = metrics.accuracy_score(y_test, y_pred)
+    print(Fore.BLUE + f"Model \"{outCol}\" achieved an accuracy of {acc*100}%" + Fore.RESET)
 
     #Return
     return logr
 
-# def main():
-#     demo = {
-#         "tableau": [
-#             [{"suit": 1, "value": 1}], 
-#             [{"hidden": True}, {"suit": 3, "value": 1}],
-#             [{"hidden": True}, {"hidden": True}, {"suit": 0, "value": 4}],
-#             [{"hidden": True}, {"hidden": True}, {"hidden": True}, {"suit": 0, "value": 11}],
-#             [{"hidden": True}, {"hidden": True}, {"hidden": True}, {"hidden": True}, {"suit": 0, "value": 2}],
-#             [{"hidden": True}, {"hidden": True}, {"hidden": True}, {"hidden": True}, {"hidden": True}, {"suit": 1, "value": 8}],
-#             [{"hidden": True}, {"hidden": True}, {"hidden": True}, {"hidden": True}, {"hidden": True}, {"hidden": True}, {"suit": 2, "value": 7}]
-#         ],
-#         "foundation": {
-#             "hearts": {"suit": 0, "value": 0}, 
-#             "spades": {"suit": 1, "value": 1}, 
-#             "diamonds": {"suit": 2, "value": 0}, 
-#             "clubs": {"suit": 3, "value": 0}
-#         },
-#         "draw": True, 
-#         "pile": {"suit": 3, "value": 10}
-#     }
+class AIPlayer():
+    def __init__(self):
+        #Load models
+        self.cmdModel = trainModel("data/cmd.csv", "Cmd")
+    
+    #Predict next move based on game state
+    def nextMove(self, gameState: pd.DataFrame):
+        cmd = self.cmdModel.predict(gameState)
 
-#     game = Game()
-#     turns = 0
-#     while not game.win():
-#         game.printGame()
-#         state = json.loads(game.json())
-#         extract(state)
-#         moves = findAllMoves(state)
+        #What to do
+        wtd = {}
+
+        match cmd:
+            #'tt'
+            case 0:
+                #TT stuff here
+                wtd['cmd'] = 'tt'
+            #'tc'
+            case 1:
+                #TC stuff here
+                wtd['cmd'] = 'tc'
+            #'d'
+            case 2:
+                wtd['cmd'] = 'd'
+            #'pt'
+            case 3:
+                #PT stuff here
+                wtd['cmd'] = 'pt'
+            #'pc'
+            case 4:
+                wtd['cmd'] = 'pc'
+            #'ft'
+            case 5:
+                #FT stuff here
+                wtd['cmd'] = 'ft'
+            case _:
+                print("An unknown move was selected?")
         
-#         # print(moves)
-
-#         if(len(moves) == 0):
-#             print(Fore.YELLOW + "No moves left..?" + Fore.RESET)
-#             game.printGame()
-#             break
-
-#         input()
-
-#         move = moves[random.randint(0,len(moves) - 1)]
-#         converted = [move['cmd']]
-#         match converted[0]:
-#             case 'tt':
-#                 converted.extend([move['frm'], move['to'], move['ct']])
-#             case 'ft':
-#                 continue
-#                 converted.extend([move['suit'], move['to']])
-#             case 'tc':
-#                 converted.extend([move['to']])
-#             case 'pt':
-#                 converted.extend([move['to']])
-#             case _:
-#                 pass
-        
-#         print(Fore.GREEN + f"Selected {converted}" + Fore.RESET)
-        
-#         if not chooseMove(converted, game):
-#             print(Fore.RED + "Shouldn't happen???" + Fore.RESET)
-#             game.printGame()
-#             break
-
-#         turns = turns + 1
-#         if turns % 1000 == 0:
-#             game.printGame()
-#         if turns >= 10000:
-#             print("Restarting..")
-#             game = Game()
-#             turns = 0
-
-#     if game.win():
-#         game.printGame()
-#         print(Fore.CYAN + "Not it fucking winning..." + Fore.RESET)
-        
-# if __name__ == "__main__":
-#     main()
+        return wtd
