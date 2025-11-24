@@ -275,8 +275,9 @@ def main():
         game.printGame()
         gs = json.loads(game.json())
         state = extract(gs)
-        # pred_move = ai.cmdModel.predict(state.to_frame().T)
-        # print(Fore.MAGENTA + f"Predicting  {numCmd_r(pred_move[0])}" + Fore.RESET)
+        pred_move = ai.nextMove(state.to_frame().T)
+        print(Fore.MAGENTA + f"Predicting  {pred_move}" + Fore.RESET)
+        decipherMove(pred_move, findAllMoves(gs), gs)
         # print(Fore.YELLOW + str(data.info()) + Fore.RESET)
 
         move = moveFromInput(input().strip().split(' '))
