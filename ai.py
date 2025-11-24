@@ -89,7 +89,11 @@ def findAllMoves(data: dict):
                     "cmd": "pt",
                     "to": c + 1
                 })
-    
+        elif pile != None and pile.value == 12:
+            moveList.append({
+                "cmd": "pt",
+                "to": c + 1
+            })
     # "pc" moves
     if pile != None and foundation[pile.suit].tryNext(pile):
         moveList.append({
@@ -111,6 +115,9 @@ def get48Idx(card: Card):
 
 #Get card from the 48 index
 def get48Card(index: int):
+    if index == 48:
+        return Card(0,0)
+
     suit = int(index/12)
     value = (index % 12) + 1
     return Card(suit, value)
@@ -284,6 +291,9 @@ class AIPlayer():
 
         self.cmdData = pd.DataFrame(columns=(basecols + ['Cmd']))
         self.ttData = pd.DataFrame(columns=(basecols + ['Card']))
+        self.ptData = pd.DataFrame(columns=(basecols + ['Card']))
+        self.tcData = pd.DataFrame(columns=(basecols + ['Card']))
+        self.ftData = pd.DataFrame(columns=(basecols + ['Card']))
     
     #Predict next move based on game state
     def nextMove(self, gameState: pd.DataFrame):
@@ -322,17 +332,31 @@ class AIPlayer():
     
     #Log moves into CSVs
     def log(self, state: pd.Series, move: dict):
-        toDF = state.to_frame().T
-
         #Cmd
-        state['Cmd'] = numCmd(move["cmd"])
-        self.cmdData = pd.concat([self.cmdData, toDF])
+        cmdState = state.copy()
+        cmdState['Cmd'] = numCmd(move["cmd"])
+        self.cmdData = pd.concat([self.cmdData, cmdState.to_frame().T])
 
-        #Save based on command
-        match move["cmd"]:
-            case 'tt':
-                
-    
+        #Set column correctly
+        if move["cmd"] in ('tt', 'pt', 'tc', 'ft'):
+            subcmdState = state.copy()
+            subcmdState['Card'] = move["to"]
+            
+            #Save to correct model
+            match move["cmd"]:
+                case 'tt':
+                    self.ttData = pd.concat([self.ttData, subcmdState.to_frame().T])
+                case 'ft':
+                    self.ftData = pd.concat([self.ftData, subcmdState.to_frame().T])
+                case 'pt':
+                    self.ptData = pd.concat([self.ptData, subcmdState.to_frame().T])
+                case 'tc':
+                    self.tcData = pd.concat([self.tcData, subcmdState.to_frame().T])
+
     #Save data to CSVs
     def save(self):
         self.cmdData.to_csv("data/cmd.csv", mode='a', header=False)
+        self.ttData.to_csv("data/tt.csv", mode='a', header=False)
+        self.tcData.to_csv("data/tc.csv", mode='a', header=False)
+        self.ptData.to_csv("data/pt.csv", mode='a', header=False)
+        self.ftData.to_csv("data/ft.csv", mode='a', header=False)

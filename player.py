@@ -1,6 +1,6 @@
 from game import Game, Card
 from colorama import Fore, Back, Style
-from ai import extract, genCols, numCmd, trainModel, numCmd_r, AIPlayer, get48Card
+from ai import extract, genCols, AIPlayer, get48Card, get48Idx, findAllMoves
 import pandas as pd
 import json
 import random
@@ -87,7 +87,9 @@ def nearestCard(expected: Card, game_state: dict) -> Card:
             elif card.value == expected.value:
                 cat = 2
             matches[cat].append(t + 1)
-    
+        elif expected.value == 0 and expected.suit == 0:
+            matches[0].append(t + 1)
+
     #Return the best match
     for i in range(0, 4):
         for c in matches[i]:
@@ -96,19 +98,19 @@ def nearestCard(expected: Card, game_state: dict) -> Card:
     return Card(0,0)
 
 #Find the column/row index of a card
-def findFromCard(game_state: dict, card: Card):
-    for index, column in enumerate(game_state["tableau"]):
-        for rowi, cardinfo in enumerate(column):
-            if("hidden" not in cardinfo):
-                foundCard = Card(cardinfo["suit"], cardinfo["value"])
-                if(foundCard == card):
-                    return [index, len(column - rowi)]
-    return -1, -1
+# def findFromCard(game_state: dict, card: Card):
+#     for index, column in enumerate(game_state["tableau"]):
+#         for rowi, cardinfo in enumerate(column):
+#             if("hidden" not in cardinfo):
+#                 foundCard = Card(cardinfo["suit"], cardinfo["value"])
+#                 if(foundCard == card):
+#                     return [index, len(column - rowi)]
+#     return -1, -1
 
 #In a list of available moves, determine if a move is stored in it.
 def isMoveAvailable(available: list, potential: dict):
     for move in available:
-        if(move["cmd"] != potential[0]):
+        if(move["cmd"] != potential["cmd"]):
             continue
 
         match potential["cmd"]:
@@ -144,7 +146,6 @@ def decipherMove(pred_move: dict, available: list, game_state: dict):
     match pred_move["cmd"]:
         case 'tt':
             pred_to = nearestCard(get48Card(pred_move["to"]), game_state)
-            tcol, trow = findFromCard(game_state, pred_to)
 
             #Determine from
 
@@ -160,23 +161,22 @@ def decipherMove(pred_move: dict, available: list, game_state: dict):
                         if("hidden" in rcardinfo or  s_this > s):
                             continue
                         go = True
-                        card = Card(rcardinfo["suit"], rcardinfo["value"])
+
                         #If this card can be added, return the move.
                         move = {
                             "cmd": "tt",
                             "frm": fcol + 1,
-                            "to": tcol + 1,
+                            "to": pred_to,
                             "ct": len(col) - frow
                         }
                         if isMoveAvailable(matchingMove, move):
-                            print(Fore.GREEN + f"Perfectly deciphered {pred_move["cmd"]} {pred_move["frm"]} {pred_move["to"]} {pred_move["ct"]}" + Fore.RESET)
+                            print(Fore.GREEN + f"Perfectly deciphered {move["cmd"]} {move["frm"]} {move["to"]} {move["ct"]}" + Fore.RESET)
                             return move
                 s = s + 1
 
         #ft suit to
         case 'ft':
             pred_to = nearestCard(get48Card(pred_move["to"]), game_state)
-            col, _ = findFromCard(game_state, pred_to)
 
             #Check which foundation cards can make the move
             for foundation in game_state["foundation"]:
@@ -184,22 +184,21 @@ def decipherMove(pred_move: dict, available: list, game_state: dict):
                 move = {
                     "cmd": "ft",
                     "suit": fd.suit + 1,
-                    "to": col + 1
+                    "to": pred_to
                 }
                 if isMoveAvailable(matchingMove, move):
-                    print(Fore.GREEN + f"Perfectly deciphered {pred_move["cmd"]} {pred_move["suit"]} {pred_move["to"]}" + Fore.RESET)
+                    print(Fore.GREEN + f"Perfectly deciphered {move["cmd"]} {move["suit"]} {move["to"]}" + Fore.RESET)
                     return move
         #tc to
         #pt to
         case 'pt' | 'tc':
             pred_to = nearestCard(get48Card(pred_move["to"]), game_state)
-            col, _ = findFromCard(game_state, pred_to)
             move = {
                 "cmd": pred_move["cmd"],
-                "to": col + 1
+                "to": pred_to
             }
             if isMoveAvailable(matchingMove, move):
-                print(Fore.GREEN + f"Perfectly deciphered {pred_move["cmd"]} {pred_move["to"]}" + Fore.RESET)
+                print(Fore.GREEN + f"Perfectly deciphered {move["cmd"]} {move["to"]}" + Fore.RESET)
                 return move
         #pc
         #d
@@ -208,7 +207,7 @@ def decipherMove(pred_move: dict, available: list, game_state: dict):
                 "cmd": pred_move["cmd"]
             }
             if isMoveAvailable(matchingMove, move):
-                print(Fore.GREEN + f"Perfectly deciphered {pred_move["cmd"]}" + Fore.RESET)
+                print(Fore.GREEN + f"Perfectly deciphered {move["cmd"]}" + Fore.RESET)
                 return move
 
     #If nothing worked, choose random move from matching available moves.
@@ -217,8 +216,20 @@ def decipherMove(pred_move: dict, available: list, game_state: dict):
     return move
 
 #Make a move fuzzy
-def fuzzy():
-    pass
+def fuzzy(game_state: dict, move: dict):
+    fuzzymove = {
+        "cmd": move["cmd"]
+    }
+    match move["cmd"]:
+        case 'tt' | 'tc' | 'ft' | 'pt':
+            if len(game_state["tableau"][move["to"] - 1]) == 0:
+                fuzzymove["to"] = 48
+            else:
+                cardinfo = game_state["tableau"][move["to"] - 1][-1]
+                card = Card(cardinfo["suit"], cardinfo["value"])
+                fuzzymove["to"] = get48Idx(card)
+
+    return fuzzymove
 
 #Create a move object from an input list
 def moveFromInput(input: list) -> dict:
@@ -227,22 +238,22 @@ def moveFromInput(input: list) -> dict:
             if len(input) != 4:
                 return {}
 
-            return {"cmd": "tt", "frm": input[1], "to": input[2], "ct": input[3]}
+            return {"cmd": "tt", "frm": int(input[1]), "to": int(input[2]), "ct": int(input[3])}
         case 'ft':
             if len(input) != 3:
                 return {}
 
-            return {"cmd": "ft", "suit": input[1], "to": input[2]}
+            return {"cmd": "ft", "suit": int(input[1]), "to": int(input[2])}
         case 'tc':
             if len(input) != 2:
                 return {}
 
-            return {"cmd": "tc", "to": input[1]}
+            return {"cmd": "tc", "to": int(input[1])}
         case 'pt':
             if len(input) != 2:
                 return {}
 
-            return {"cmd": "pt", "to": input[1]}
+            return {"cmd": "pt", "to": int(input[1])}
         case 'pc':
             return {"cmd": "pc"}
         case 'd':
@@ -256,18 +267,19 @@ def main():
     # cmd_predict = trainModel("data/cmd.csv", "Cmd")
     ai = AIPlayer()
 
-    cols = genCols()
-    cols.append('Cmd')
-    data = pd.DataFrame(columns=cols)
+    # cols = genCols()
+    # cols.append('Cmd')
+    # data = pd.DataFrame(columns=cols)
 
     while not game.win():
         game.printGame()
-        state = extract(json.loads(game.json()))
-        pred_move = ai.cmdModel.predict(state.to_frame().T)
-        print(Fore.MAGENTA + f"Predicting  {numCmd_r(pred_move[0])}" + Fore.RESET)
+        gs = json.loads(game.json())
+        state = extract(gs)
+        # pred_move = ai.cmdModel.predict(state.to_frame().T)
+        # print(Fore.MAGENTA + f"Predicting  {numCmd_r(pred_move[0])}" + Fore.RESET)
         # print(Fore.YELLOW + str(data.info()) + Fore.RESET)
 
-        move = moveFromInput(input().split(' '))
+        move = moveFromInput(input().strip().split(' '))
 
         # print(move)
         # if len(move) == 0:
@@ -277,12 +289,15 @@ def main():
         if result == False:
             print("Did not work")
         else:
-            ai.log(state, move)
+            fz = fuzzy(gs, move)
+            ai.log(state, fuzzy(gs, move))
+            deciph = decipherMove(fz, findAllMoves(gs), gs)
             # state['Cmd'] = numCmd(move[0])
             # data = pd.concat([data, state.to_frame().T])
 
 
     #Save winning data!
+    ai.save()
     # data.to_csv("data/cmd.csv", mode='a', header=False)
 
     print(Fore.MAGENTA + "You ~~win~~!!! <3 👏👏👏👏")
