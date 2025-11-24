@@ -284,6 +284,10 @@ class AIPlayer():
     def __init__(self):
         #Load models
         self.cmdModel = trainModel("data/cmd.csv", "Cmd")
+        self.ttModel = trainModel("data/tt.csv", "Card")
+        self.ptModel = trainModel("data/pt.csv", "Card")
+        self.tcModel = trainModel("data/tc.csv", "Card")
+        self.ftModel = trainModel("data/ft.csv", "Card")
 
         #Setup dataframes for collected data
         basecols = genCols()
@@ -300,35 +304,43 @@ class AIPlayer():
         cmd = self.cmdModel.predict(gameState)
 
         #What to do
-        wtd = {}
+        move = {}
 
         match cmd:
             #'tt'
             case 0:
                 #TT stuff here
-                wtd['cmd'] = 'tt'
+                move['cmd'] = 'tt'
+                to = self.ttModel.predict(gameState)
+                move['to'] = to
             #'tc'
             case 1:
                 #TC stuff here
-                wtd['cmd'] = 'tc'
+                move['cmd'] = 'tc'
+                to = self.tcModel.predict(gameState)
+                move['tc'] = to
             #'d'
             case 2:
-                wtd['cmd'] = 'd'
+                move['cmd'] = 'd'
             #'pt'
             case 3:
                 #PT stuff here
-                wtd['cmd'] = 'pt'
+                move['cmd'] = 'pt'
+                to = self.ptModel.predict(gameState)
+                move['pt'] = to
             #'pc'
             case 4:
-                wtd['cmd'] = 'pc'
+                move['cmd'] = 'pc'
             #'ft'
             case 5:
                 #FT stuff here
-                wtd['cmd'] = 'ft'
+                move['cmd'] = 'ft'
+                to = self.ftModel.predict(gameState)
+                move['ft'] = to
             case _:
                 print("An unknown move was selected?")
         
-        return wtd
+        return move
     
     #Log moves into CSVs
     def log(self, state: pd.Series, move: dict):
