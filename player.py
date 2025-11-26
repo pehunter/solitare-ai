@@ -135,11 +135,18 @@ def isMoveAvailable(available: list, potential: dict):
 # tc 3 ([♥2])
 # tt 38 
 #They are based on the "to" column. This function finds the card they're talking about, and any corresponding data (like "frm" or "suit")
+bad = 0
+ok = 0
+good = 0
 def decipherMove(pred_move: dict, available: list, game_state: dict):
+    global bad
+    global ok
+    global good
     matchingMove = [x for x in available if x["cmd"] == pred_move["cmd"]]
 
     #If there are no matching moves then just pick something at random
     if len(matchingMove) == 0:
+        bad = bad + 1
         print(Fore.RED + "Predicted move had no matching command, pick random..." + Fore.RESET)
         return available[random.randint(0, len(available) - 1)]
     
@@ -158,9 +165,10 @@ def decipherMove(pred_move: dict, available: list, game_state: dict):
                     s_this = 0
                     for frow, rcardinfo in enumerate(col):
                         #Don't proceed if card is hidden or skip exceeded
-                        if("hidden" in rcardinfo or  s_this > s):
+                        if("hidden" in rcardinfo or  s_this < s):
                             continue
                         go = True
+                        s_this = s_this + 1
 
                         #If this card can be added, return the move.
                         move = {
@@ -171,6 +179,7 @@ def decipherMove(pred_move: dict, available: list, game_state: dict):
                         }
                         if isMoveAvailable(matchingMove, move):
                             print(Fore.GREEN + f"Perfectly deciphered {move["cmd"]} {move["frm"]} {move["to"]} {move["ct"]}" + Fore.RESET)
+                            good = good + 1
                             return move
                 s = s + 1
 
@@ -180,7 +189,7 @@ def decipherMove(pred_move: dict, available: list, game_state: dict):
 
             #Check which foundation cards can make the move
             for foundation in game_state["foundation"]:
-                fd = Card(foundation["suit"], foundation["value"])
+                fd = Card(game_state["foundation"][foundation]["suit"], game_state["foundation"][foundation]["value"])
                 move = {
                     "cmd": "ft",
                     "suit": fd.suit + 1,
@@ -188,6 +197,7 @@ def decipherMove(pred_move: dict, available: list, game_state: dict):
                 }
                 if isMoveAvailable(matchingMove, move):
                     print(Fore.GREEN + f"Perfectly deciphered {move["cmd"]} {move["suit"]} {move["to"]}" + Fore.RESET)
+                    good = good + 1
                     return move
         #tc to
         #pt to
@@ -199,6 +209,7 @@ def decipherMove(pred_move: dict, available: list, game_state: dict):
             }
             if isMoveAvailable(matchingMove, move):
                 print(Fore.GREEN + f"Perfectly deciphered {move["cmd"]} {move["to"]}" + Fore.RESET)
+                good = good + 1
                 return move
         #pc
         #d
@@ -208,11 +219,13 @@ def decipherMove(pred_move: dict, available: list, game_state: dict):
             }
             if isMoveAvailable(matchingMove, move):
                 print(Fore.GREEN + f"Perfectly deciphered {move["cmd"]}" + Fore.RESET)
+                good = good + 1
                 return move
 
     #If nothing worked, choose random move from matching available moves.
     move = matchingMove[random.randint(0, len(matchingMove) - 1)]
     print(Fore.YELLOW + f"Could not fully decipher move, choosing a random {move["cmd"]}" + Fore.RESET)
+    ok = ok + 1
     return move
 
 #Make a move fuzzy
@@ -263,13 +276,12 @@ def moveFromInput(input: list) -> dict:
     return {}
 
 def main():
+    global bad
+    global good
+    global ok
     game = Game()
     # cmd_predict = trainModel("data/cmd.csv", "Cmd")
     ai = AIPlayer()
-
-    # cols = genCols()
-    # cols.append('Cmd')
-    # data = pd.DataFrame(columns=cols)
 
     while not game.win():
         game.printGame()
@@ -278,31 +290,24 @@ def main():
         pred_move = ai.nextMove(state.to_frame().T)
         print(Fore.MAGENTA + f"Predicting  {pred_move}" + Fore.RESET)
         decipherMove(pred_move, findAllMoves(gs), gs)
-        # print(Fore.YELLOW + str(data.info()) + Fore.RESET)
 
         move = moveFromInput(input().strip().split(' '))
-
-        # print(move)
-        # if len(move) == 0:
-            # continue
 
         result = chooseMove(move, game)
         if result == False:
             print("Did not work")
         else:
-            fz = fuzzy(gs, move)
             ai.log(state, fuzzy(gs, move))
-            deciph = decipherMove(fz, findAllMoves(gs), gs)
-            # state['Cmd'] = numCmd(move[0])
-            # data = pd.concat([data, state.to_frame().T])
 
 
     #Save winning data!
     ai.save()
-    # data.to_csv("data/cmd.csv", mode='a', header=False)
 
-    print(Fore.MAGENTA + "You ~~win~~!!! <3 👏👏👏👏")
-    print("You are special." + Fore.RESET)
+    print(Fore.MAGENTA + "You win" + Fore.RESET)
+
+    print(Fore.GREEN + f"Good predictions: {good}" + Fore.RESET)
+    print(Fore.YELLOW + f"Ok predictions: {ok}" + Fore.RESET)
+    print(Fore.RED + f"Bad predictions: {bad}" + Fore.RESET)
 
 if __name__ == "__main__":
     main()
