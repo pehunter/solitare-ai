@@ -269,10 +269,9 @@ def trainModel(csvPath: str, outCol: str):
     #Test LR
     y_pred = logr.predict(x_test)
     acc = metrics.accuracy_score(y_test, y_pred)
-    print(Fore.BLUE + f"Model \"{outCol}\" achieved an accuracy of {acc*100}%" + Fore.RESET)
 
     #Return
-    return logr
+    return logr, acc
 
 #Get columns from first line of csv
 def getColumns(csvPath: str):
@@ -283,7 +282,18 @@ def getColumns(csvPath: str):
 class AIPlayer():
     def __init__(self):
         #Load models
-        self.cmdModel = trainModel("data/cmd.csv", "Cmd")
+        self.cmdModel, cmdAcc = trainModel("data/cmd.csv", "Cmd")
+        self.ttModel, ttAcc = trainModel("data/tt.csv", "Card")
+        self.ptModel, ptAcc = trainModel("data/pt.csv", "Card")
+        self.tcModel, tcAcc = trainModel("data/tc.csv", "Card")
+        self.ftModel, ftAcc = trainModel("data/ft.csv", "Card")
+
+        #Print accuracy
+        print(Fore.BLUE + f"The cmd model achieved an accuracy of {cmdAcc*100}%" + Fore.RESET)
+        print(Fore.BLUE + f"The tt model achieved an accuracy of {ttAcc*100}%" + Fore.RESET)
+        print(Fore.BLUE + f"The pt model achieved an accuracy of {ptAcc*100}%" + Fore.RESET)
+        print(Fore.BLUE + f"The tc model achieved an accuracy of {tcAcc*100}%" + Fore.RESET)
+        print(Fore.BLUE + f"The ft model achieved an accuracy of {ftAcc*100}%" + Fore.RESET)
 
         #Setup dataframes for collected data
         basecols = genCols()
@@ -300,35 +310,39 @@ class AIPlayer():
         cmd = self.cmdModel.predict(gameState)
 
         #What to do
-        wtd = {}
+        move = {}
 
         match cmd:
             #'tt'
             case 0:
-                #TT stuff here
-                wtd['cmd'] = 'tt'
+                move['cmd'] = 'tt'
+                to = self.ttModel.predict(gameState)
+                move['to'] = int(to[0])
             #'tc'
             case 1:
-                #TC stuff here
-                wtd['cmd'] = 'tc'
+                move['cmd'] = 'tc'
+                to = self.tcModel.predict(gameState)
+                move['to'] = int(to[0])
             #'d'
             case 2:
-                wtd['cmd'] = 'd'
+                move['cmd'] = 'd'
             #'pt'
             case 3:
-                #PT stuff here
-                wtd['cmd'] = 'pt'
+                move['cmd'] = 'pt'
+                to = self.ptModel.predict(gameState)
+                move['to'] = int(to[0])
             #'pc'
             case 4:
-                wtd['cmd'] = 'pc'
+                move['cmd'] = 'pc'
             #'ft'
             case 5:
-                #FT stuff here
-                wtd['cmd'] = 'ft'
+                move['cmd'] = 'ft'
+                to = self.ftModel.predict(gameState)
+                move['ft'] = to
             case _:
                 print("An unknown move was selected?")
         
-        return wtd
+        return move
     
     #Log moves into CSVs
     def log(self, state: pd.Series, move: dict):
