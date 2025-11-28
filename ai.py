@@ -1,113 +1,14 @@
+### ai.py
+### Handles data processing, data extraction, and move prediction
+
 from game import Card, Game
 from colorama import Fore
 # from player import chooseMove
 import pprint
-import json
 import random
 import pandas as pd
 import numpy as np
 from sklearn import linear_model, model_selection, metrics
-
-#Get all free cards (cards that can be appended to)
-def getFree(data: dict) -> list[Card | bool]:
-    #If freeCards is != 7 then there is a free space...
-    freeCards = []
-    for col in data["tableau"]:
-        if len(col) > 0:
-            freeCards.append(Card(col[-1]['suit'], col[-1]['value']))
-        else:
-            freeCards.append(True)
-    return freeCards
-
-#Gets possible locations to place card
-def getMoves(card: Card, freeCards: list[Card | bool]) -> list[int]:
-    moves = []
-    for t, freeCard in enumerate(freeCards):
-        isCard = isinstance(freeCard, Card)
-        #Kings
-        if (not isCard and card.value == 12) or (isCard and freeCard.tryAdd(card)):
-            moves.append(t)
-    return moves
-
-#Returns a list of possible moves to make
-def findAllMoves(data: dict):
-    #Create foundation
-    foundation = {
-        0: Card(data["foundation"]["hearts"]["suit"], data["foundation"]["hearts"]["value"]),
-        1: Card(data["foundation"]["spades"]["suit"], data["foundation"]["spades"]["value"]),
-        2: Card(data["foundation"]["diamonds"]["suit"], data["foundation"]["diamonds"]["value"]),
-        3: Card(data["foundation"]["clubs"]["suit"], data["foundation"]["clubs"]["value"])
-    }
-
-    pile = None
-    if(data["pile"] != False):
-        pile = Card(data["pile"]["suit"], data["pile"]["value"])
-
-    #Get free cards
-    freeCards = getFree(data)
-    moveList = []
-    
-    for c in range(0,7):
-        for idx, cardData in enumerate(data["tableau"][c]):
-            #Skip hidden
-            if "hidden" in cardData:
-                continue
-
-            #Get the card's count position (from player perspective) from its index
-            ct = len(data["tableau"][c]) - idx
-            card = Card(cardData["suit"], cardData["value"])
-            # "tt" moves
-            moves = getMoves(card, freeCards)
-            for move in moves:
-                moveList.append({
-                    "cmd": "tt",
-                    "frm": c + 1,
-                    "to": move + 1,
-                    "ct": ct
-                })
-        if len(data["tableau"][c]) > 0:
-            lc = Card(data["tableau"][c][-1]["suit"], data["tableau"][c][-1]["value"])
-            # "ft" moves
-            for suit in range(0, 4):
-                if(lc.tryAdd(foundation[suit])):
-                    moveList.append({
-                        "cmd": "ft",
-                        "suit": suit + 1,
-                        "to": c + 1
-                    })
-
-            # "tc" moves
-            if foundation[lc.suit].tryNext(lc):
-                moveList.append({
-                    "cmd": "tc",
-                    "to": c + 1
-                })
-            
-            # "pt" moves
-            if pile != None and lc.tryAdd(pile):
-                moveList.append({
-                    "cmd": "pt",
-                    "to": c + 1
-                })
-        elif pile != None and pile.value == 12:
-            moveList.append({
-                "cmd": "pt",
-                "to": c + 1
-            })
-    # "pc" moves
-    if pile != None and foundation[pile.suit].tryNext(pile):
-        moveList.append({
-            "cmd": "pc"
-        })
-    
-    # "d" moves
-    if data["draw"] or pile != None:
-        moveList.append({
-            "cmd": "d"
-        })
-
-    return moveList
-
 
 #Get the card's index in a 48 equation
 def get48Idx(card: Card):
@@ -172,9 +73,6 @@ def extract(data: dict) -> pd.Series:
     empty = False
     draw = False
 
-    #Is this even needed?
-    hidden = 0
-
     for col in data["tableau"]:
         if len(col) > 0:
             #Set bottom card
@@ -184,15 +82,12 @@ def extract(data: dict) -> pd.Series:
             #Set top card
             x = 0
             while "hidden" in col[x]:
-                hidden = hidden + 1
                 x = x + 1
             top = Card(col[x]["suit"], col[x]["value"])
-            # cardData[get48Idx(top)][1] = 1
             cardData["Top_"+get48Title(get48Idx(top))]= 1
             #Get middle cards
             while x < len(col):
                 middle = Card(col[x]["suit"], col[x]["value"])
-                # cardData[get48Idx(middle)][2] = 1
                 cardData["Move_"+get48Title(get48Idx(middle))]= 1
                 x = x + 1
         else:
@@ -203,30 +98,19 @@ def extract(data: dict) -> pd.Series:
         for z in range(1, val + 1):
             card = Card(data["foundation"][suit]["suit"], z)
             cardData["Collect_"+get48Title(get48Idx(card))]= 1
-            # cardData[get48Idx(card)][3] = 1
         if(val > 0):
             card = Card(data["foundation"][suit]["suit"], val)
             cardData["Foundation_"+get48Title(get48Idx(card))]= 1
-            # cardData[get48Idx(card)][4] = 1
 
     if(data["pile"] != False):
         pile = Card(data["pile"]["suit"], data["pile"]["value"])
         cardData["Pile_"+get48Title(get48Idx(pile))]= 1
-        # cardData[get48Idx(pile)][5] = 1
     
     if(data["draw"]):
         draw = True
-    # print(cardData)
-    # print(f"Hidden: {hidden}")
-    # print(f"Empty: {empty}")
-    # print(f"Draw: {draw}")
-
 
     cardData["Empty"] = int(empty)
     cardData["Draw"] = int(draw)
-    # shaped = np.append(cardData, [empty, draw, 9])
-    # shaped = np.reshape(shaped, (1, 48*6 + 3))
-    # df = pd.DataFrame(shaped, columns=cols)
     
     return cardData
 
@@ -288,23 +172,28 @@ class AIPlayer():
         self.tcModel, tcAcc = trainModel("data/tc.csv", "Card")
         self.ftModel, ftAcc = trainModel("data/ft.csv", "Card")
 
-        #Print accuracy
-        print(Fore.BLUE + f"The cmd model achieved an accuracy of {cmdAcc*100}%" + Fore.RESET)
-        print(Fore.BLUE + f"The tt model achieved an accuracy of {ttAcc*100}%" + Fore.RESET)
-        print(Fore.BLUE + f"The pt model achieved an accuracy of {ptAcc*100}%" + Fore.RESET)
-        print(Fore.BLUE + f"The tc model achieved an accuracy of {tcAcc*100}%" + Fore.RESET)
-        print(Fore.BLUE + f"The ft model achieved an accuracy of {ftAcc*100}%" + Fore.RESET)
+        #Save accuracy
+        self.acc = {
+            "cmd": cmdAcc,
+            "tt": ttAcc,
+            "pt": ptAcc,
+            "tc": tcAcc,
+            "ft": ftAcc,
+        }
 
         #Setup dataframes for collected data
         basecols = genCols()
-        cards = [str(x) for x in list(range(48))]
-
+# 
         self.cmdData = pd.DataFrame(columns=(basecols + ['Cmd']))
         self.ttData = pd.DataFrame(columns=(basecols + ['Card']))
         self.ptData = pd.DataFrame(columns=(basecols + ['Card']))
         self.tcData = pd.DataFrame(columns=(basecols + ['Card']))
         self.ftData = pd.DataFrame(columns=(basecols + ['Card']))
     
+    #Get accuracies for the 5 models
+    def getAcc(self):
+        return self.acc
+
     #Predict next move based on game state
     def nextMove(self, gameState: pd.DataFrame):
         cmd = self.cmdModel.predict(gameState)
