@@ -1,0 +1,14 @@
+services:
+  server:
+    build: ./game_server
+    develop:
+      watch:
+        - action: sync
+          path: ./game_server
+          target: /usr/src/app
+    ports:
+      - "8000:8888"
+    volumes:
+      - type: bind
+        source: ./data
+        target: /usr/src/app/data
