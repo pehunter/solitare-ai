@@ -436,7 +436,7 @@ class Instance():
         move_successful = chooseMove(move, self.__game)       
         won = self.__game.win()
         
-        results = {
+        results: dict = {
             "move_successful": move_successful,
             "won": won
         }

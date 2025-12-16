@@ -2,10 +2,13 @@ import http.server as sv
 import json
 from player import Instance
 from flask import Flask, request
+from flask_cors import CORS
+import colorama
 
 def init_app():
     global inst
     app = Flask(__name__)
+    CORS(app)
     inst = Instance()
 
     @app.get("/get/state")
@@ -40,4 +43,5 @@ def init_app():
         
         return {"msg": "Successfully started a new game instance."}
 
+    print(colorama.Fore.YELLOW + "Solitare server was started..." + colorama.Fore.RESET)
     return app

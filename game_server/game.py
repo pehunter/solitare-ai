@@ -107,7 +107,7 @@ class Game():
         
         #Generate random card
         def genCard():
-            card = cards[1]#random.randint(0, len(cards) - 1)]
+            card = cards[random.randint(0, len(cards) - 1)]
             cards.remove(card)
             return card
 
@@ -127,7 +127,7 @@ class Game():
         #Generate draw
         #could probably just assign it but idk don't trust it will remain alive
         while(len(cards) > 0):
-            card = cards.pop()#random.randint(0, len(cards) - 1))
+            card = cards.pop(random.randint(0, len(cards) - 1))
             self.draw.append(card) 
         
         self.discoverEdge()
