@@ -9,6 +9,7 @@ import random
 import pandas as pd
 import numpy as np
 from sklearn import linear_model, model_selection, metrics
+import joblib
 
 #Get the card's index in a 48 equation
 def get48Idx(card: Card):
@@ -134,9 +135,9 @@ def numCmd_r(idx: int):
         case 5: return 'ft'
         case 6: return '_'
 
-def trainModel(csvPath: str, outCol: str):
+def trainModel(cmd: str, outCol: str):
     #Load CSV into df
-    x = pd.read_csv(csvPath, header=0, index_col=0)
+    x = pd.read_csv(f"data/{cmd}.csv", header=0, index_col=0)
 
     #Capture x and y & drop outCol
     y = x.loc[:, outCol]
@@ -150,11 +151,26 @@ def trainModel(csvPath: str, outCol: str):
     logr = linear_model.LogisticRegression(max_iter=612)
     logr.fit(x_train,y_train)
 
+    #Save LR
+    joblib.dump(logr, f"model/{cmd}.pkl")
+
     #Test LR
     y_pred = logr.predict(x_test)
     acc = metrics.accuracy_score(y_test, y_pred)
 
-    #Return
+    #Save test results
+    with open(f"model/{cmd}.acc", "w") as file:
+        file.write(acc)
+
+# Load a model from a saved file
+def loadModel(cmd: str):
+    logr = joblib.load(f"model/{cmd}.pkl")
+    
+    #Get accuracy
+    acc = -1
+    with open(f"model/{cmd}.acc", "r") as file:
+        acc = float(file.read())
+    
     return logr, acc
 
 #Get columns from first line of csv
@@ -166,11 +182,11 @@ def getColumns(csvPath: str):
 class AIPlayer():
     def __init__(self):
         #Load models
-        self.cmdModel, cmdAcc = trainModel("data/cmd.csv", "Cmd")
-        self.ttModel, ttAcc = trainModel("data/tt.csv", "Card")
-        self.ptModel, ptAcc = trainModel("data/pt.csv", "Card")
-        self.tcModel, tcAcc = trainModel("data/tc.csv", "Card")
-        self.ftModel, ftAcc = trainModel("data/ft.csv", "Card")
+        self.cmdModel, cmdAcc = loadModel("cmd")
+        self.ttModel, ttAcc = loadModel("tt")
+        self.ptModel, ptAcc = loadModel("pt")
+        self.tcModel, tcAcc = loadModel("tc")
+        self.ftModel, ftAcc = loadModel("ft")
 
         #Save accuracy
         self.acc = {
@@ -183,7 +199,7 @@ class AIPlayer():
 
         #Setup dataframes for collected data
         basecols = genCols()
-# 
+ 
         self.cmdData = pd.DataFrame(columns=(basecols + ['Cmd']))
         self.ttData = pd.DataFrame(columns=(basecols + ['Card']))
         self.ptData = pd.DataFrame(columns=(basecols + ['Card']))

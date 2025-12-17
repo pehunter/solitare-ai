@@ -14,15 +14,19 @@ class Log:
         self.bd = 0
         self.gd = 0
         self.k = 0
+        self.last = 0
     
     def bad(self):
         self.bd = self.bd + 1
+        self.last = -1
 
     def good(self):
         self.gd = self.gd + 1
+        self.last = 1
 
     def ok(self):
         self.k = self.k + 1
+        self.last = 0
     
     def asInt(self) -> list[int]:
         return [self.gd, self.k, self.bd]
@@ -416,7 +420,8 @@ class Instance():
         actual_move = decipherMove(pred_move, findAllMoves(self.__state), self.__state, self.__log)
         return {
             "pred_move": pred_move,
-            "actual_move": actual_move
+            "actual_move": actual_move,
+            "accuracy": self.__log.last
         }
     
     #Get the accuracy of each AI model

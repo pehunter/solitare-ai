@@ -3,6 +3,7 @@ import json
 from player import Instance
 from flask import Flask, request
 from flask_cors import CORS
+from ai import trainModel
 import colorama
 
 def init_app():
@@ -23,6 +24,15 @@ def init_app():
     def get_ai_acc():
         return inst.ai_acc()
 
+    @app.post("/train")
+    def train():
+        trainModel("cmd", "Cmd")
+        trainModel("tt", "Card")
+        trainModel("ft", "Card")
+        trainModel("pt", "Card")
+        trainModel("tc", "Card")
+        return {"msg": "AI successfully retrained."}
+        
     @app.post("/move")
     def move():
         if not request.is_json:
