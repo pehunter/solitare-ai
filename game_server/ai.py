@@ -160,7 +160,7 @@ def trainModel(cmd: str, outCol: str):
 
     #Save test results
     with open(f"model/{cmd}.acc", "w") as file:
-        file.write(acc)
+        file.write(str(acc))
 
 # Load a model from a saved file
 def loadModel(cmd: str):

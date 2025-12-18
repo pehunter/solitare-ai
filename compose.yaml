@@ -12,3 +12,6 @@ services:
       - type: bind
         source: ./data
         target: /usr/src/app/data
+      - type: bind
+        source: ./model
+        target: /usr/src/app/model
