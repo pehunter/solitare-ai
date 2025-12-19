@@ -1,0 +1,199 @@
+body {
+    background-color: #a4a4a4;
+}
+
+body * {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+}
+
+.spacer {
+    flex-grow: 1;
+}
+
+.top {
+    display: flex;
+    justify-content: space-around;
+}
+
+.foundation {
+    display: flex;
+    gap: 1em;
+    padding: 1em;
+    justify-content: center;
+}
+
+.foundation .wrapper:not(.blank) {
+    outline: 1px solid black;
+    background-color: white;
+    overflow: visible;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+.pile {
+    display: flex;
+    gap: 1em;
+    padding: 1em;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.pile .wrapper:last-child:not(.blank) {
+    background-color: white;
+    outline: 1px solid black;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+.tableau {
+    display: flex;
+    gap: 1em;
+    padding: 1em;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.tableau-col {
+    background-color: white;
+    border-radius: 10px;
+    width: min-content;
+    outline: 1px solid black;
+    
+    display:flex;
+    flex-direction: column;;
+}
+
+.wrapper {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.wrapper:last-child {
+    overflow: visible;
+}
+
+.tableau-col .wrapper { 
+    border-top: 1px solid black;
+}
+
+.tableau-col .wrapper:first-child {
+    border-top: none;
+}
+
+.tableau-col .wrapper:last-child {
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+.card {
+    display: grid;
+    grid-template-rows: [value] 2em [icon] 1fr [bvalue] 2em;
+    grid-template-columns: [value] 2em [icon] 1fr [bvalue] 2em;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+
+    width: 8em;
+    height: 12em;
+}
+
+.card div {
+    grid-column: value / value;
+    grid-row: value / value;
+
+    color: #1e1e1e;
+    font-size: 12pt;
+    font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-weight: bold;
+    text-align: center;
+}
+
+.blank {
+    background-color: transparent;
+    outline: 2px dashed black;
+}
+
+.blank:not(.glow-to):not(.glow-frm) {
+    box-shadow: none;
+}
+
+.hidden {
+    background: conic-gradient(from 45deg, #cecece 0deg 90deg, #7e7e7e 90deg 180deg, #cecece 180deg 270deg, #7e7e7e 270deg 360deg);
+    background-size: 0.8em 0.8em;
+    border: 1px solid black;
+}
+
+.red div {
+    color: red;
+}
+
+.card .reverse {
+    grid-column: bvalue / bvalue;
+    grid-row: bvalue / bvalue;
+
+    rotate: 180deg;
+}
+
+.card .icon {
+    grid-column: icon / icon;
+    grid-row: icon / icon;
+
+    font-size: 36pt;
+}
+
+.glow-frm {
+    box-shadow: 0px 0px 10px 5px rgba(255, 0, 200, 0.7);
+}
+
+.glow-to {
+    box-shadow: 0px 0px 10px 5px rgba(0, 255, 51, 0.7);
+}
+
+.drag {
+    position:absolute;
+    pointer-events: none;
+}
+
+.drag .wrapper {
+    outline: 1px solid black;
+    background-color: white;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+button {
+    padding: 0.5em 1em;
+    border-radius: 10em;
+    align-self: center;
+    border: 2px solid black;
+    font-size: 16pt;
+}
+
+#start {
+    border-color: rgb(12, 67, 167);
+    background-color: skyblue;
+}
+
+#train {
+    border-color: rgb(12, 167, 67);
+    background-color: rgb(158, 235, 135);
+}
+
+.col {
+    display:flex;
+    flex-direction: column;
+}
+
+.ok {
+    color: goldenrod;
+}
+
+.bad {
+    color: crimson;
+}
+
+.good {
+    color: green;
+}
