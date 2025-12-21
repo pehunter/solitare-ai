@@ -37,12 +37,14 @@ const Pile = (input: {draw_data: boolean, pile_data: (Card_Data | boolean), card
     //Highlight function
     function getHighlight(type: string): Card_Highlight {
         //Highlight draw
-        if(input.ai_move.cmd == "d" && type == "draw")
+        if(input.ai_move.cmd == "d" && type === "draw")
             return Card_Highlight.TO;
         
         //Highlight pile
-        if(input.ai_move.cmd in ["pc", "pt"] && type == "pile")
+        if(["pc", "pt"].includes(input.ai_move.cmd) && type === "pile") {
+            console.log("uhh");
             return Card_Highlight.FROM;
+        }
         
         return Card_Highlight.NONE;
     }

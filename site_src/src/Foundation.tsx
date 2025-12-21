@@ -27,7 +27,7 @@ const Foundation = (input: {foundation_data: Foundation_Data, card_sel: (type: s
     //Get the highlight for the foundation card
     function getHighlight(suit: number): Card_Highlight {
         //If the current move is pc or tc and this card is the matching foundation, highlight it.
-        if(input.ai_move.cmd in ["pc", "tc"] && input.ai_foundation == suit)
+        if(["pc", "tc"].includes(input.ai_move.cmd) && input.ai_foundation == suit)
             return Card_Highlight.TO;
         //If performing a foundation transfer and this card matches the move's suit, highlight it.
         else if(input.ai_move.cmd == "ft" && input.ai_move.suit != undefined && input.ai_move.suit == suit)
@@ -41,17 +41,16 @@ const Foundation = (input: {foundation_data: Foundation_Data, card_sel: (type: s
     };
 
     let grabbed_suit = suit_to_str(input.sel_pos.suit);
-    // console.log(grabbed_suit);
     if(grabbed_suit != "")
         processed[grabbed_suit as keyof Foundation_Data] = {suit: -1, value: 0}
 
 
     return (
         <div id="foundation" className="foundation">
-            <Card data={processed.hearts} highlight={getHighlight(0)} select={genSelectFunc}/>
-            <Card data={processed.spades} highlight={getHighlight(1)} select={genSelectFunc}/>
-            <Card data={processed.diamonds} highlight={getHighlight(2)} select={genSelectFunc}/>
-            <Card data={processed.clubs} highlight={getHighlight(3)} select={genSelectFunc}/>
+            <Card data={processed.hearts} highlight={getHighlight(1)} select={genSelectFunc}/>
+            <Card data={processed.spades} highlight={getHighlight(2)} select={genSelectFunc}/>
+            <Card data={processed.diamonds} highlight={getHighlight(3)} select={genSelectFunc}/>
+            <Card data={processed.clubs} highlight={getHighlight(4)} select={genSelectFunc}/>
         </div>
     );
 }

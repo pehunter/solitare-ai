@@ -32,6 +32,9 @@ body * {
     outline: 1px solid black;
     background-color: white;
     overflow: visible;
+}
+
+.foundation .wrapper:not(.blank):not(.glow-to):not(.glow-frm) {
     box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
 }
 
@@ -46,6 +49,9 @@ body * {
 .pile .wrapper:last-child:not(.blank) {
     background-color: white;
     outline: 1px solid black;
+}
+
+.pile .wrapper:last-child:not(.blank):not(.glow-to):not(.glow-frm) {
     box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
 }
 
@@ -84,7 +90,7 @@ body * {
     border-top: none;
 }
 
-.tableau-col .wrapper:last-child {
+.tableau-col .wrapper:last-child:not(.glow-to):not(.glow-frm) {
     box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
 }
 

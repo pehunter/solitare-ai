@@ -31,15 +31,13 @@ const AIStats = (input: {quality: number, accs: AccList}) => {
         }
     })()
 
-    console.log(cls);
-
     return <div className="col">
         <text className={cls}>{cls}</text>
-        <text>{`cmd accuracy: ${input.accs["cmd"]}%`}</text>
-        <text>{`tt accuracy: ${input.accs["tt"]}%`}</text>
-        <text>{`ft accuracy: ${input.accs["ft"]}%`}</text>
-        <text>{`tc accuracy: ${input.accs["tc"]}%`}</text>
-        <text>{`pt accuracy: ${input.accs["pt"]}%`}</text>
+        <text>{`cmd accuracy: ${Math.round(input.accs["cmd"]*10000)/100}%`}</text>
+        <text>{`tt accuracy: ${Math.round(input.accs["tt"]*10000)/100}%`}</text>
+        <text>{`ft accuracy: ${Math.round(input.accs["ft"]*10000)/100}%`}</text>
+        <text>{`tc accuracy: ${Math.round(input.accs["tc"]*10000)/100}%`}</text>
+        <text>{`pt accuracy: ${Math.round(input.accs["pt"]*10000)/100}%`}</text>
     </div>
 }
 

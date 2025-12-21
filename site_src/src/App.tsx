@@ -63,7 +63,6 @@ const App = () => {
         fetch(`http://localhost:8888/get/state`)
         .then((data: Response) =>data.json())
         .then((jsonData: any) => {
-            console.log(jsonData);
             if(jsonData == undefined || "error" in jsonData)
                 setGameState(getBlankGame());
             else
@@ -84,6 +83,7 @@ const App = () => {
             } else {
                 setAIQuality(jsonData.accuracy);
                 setAIMove(jsonData.actual_move);
+                console.log(jsonData.actual_move);
                 return true;
             }
         })
@@ -100,7 +100,6 @@ const App = () => {
             body: JSON.stringify(move)
         }).then((resp: Response) => resp.json())
         .then((results: any) => {
-            console.log(results)
             if(results.won)
                 alert("You won")
             setTimeout(refresh, 25);
@@ -259,7 +258,6 @@ const App = () => {
     //Handles selecting cards and performing actions based off of selection
     function manageDrag(data: Card_Data, offsetX: number, offsetY: number, cp: CardPos) {
         let clear = false;
-        console.log(data);
 
         //First selection
         if (!dragging) {

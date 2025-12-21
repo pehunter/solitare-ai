@@ -11,18 +11,19 @@ const Tableau = (input: {tableau_data: Tableau_Data, card_sel: (type: string, ro
         
         //From for tt: will highlight the card if the "frm" and "ct" match the row/col
         if(input.ai_move.cmd == "tt" && input.ai_move.frm != undefined && input.ai_move.to != undefined && input.ai_move.ct != undefined) {
-            if(input.ai_move.frm == col && input.ai_move.ct == row)
+            if(input.ai_move.frm == col && input.ai_move.ct == row) {
                 return Card_Highlight.FROM;
+            }
         }
         
         //Tc: will highlight the frm in the tableau and set the ai_foundation to the card's suit, highlighting the foundation.
         if(input.ai_move.cmd == "tc" && input.ai_move.to != undefined && col == input.ai_move.to && row == 1) {
-            input.set_ai_foundation(card.suit ?? -1)
+            input.set_ai_foundation((card.suit ?? -1) + 1)
             return Card_Highlight.FROM;
         }
 
         //To: For tt, pt, and ft, it will highlight the tableau card if it is an edge card in the correct column
-        if(input.ai_move.cmd in ["tt", "pt", "ft"] && input.ai_move.to != undefined && input.ai_move.to == col && row == 1) {
+        if(["tt", "pt", "ft"].includes(input.ai_move.cmd) && input.ai_move.to != undefined && input.ai_move.to == col && row == 1) {
             return Card_Highlight.TO;
         }
 
