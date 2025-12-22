@@ -19,8 +19,7 @@ A Python AI Model that predicts the best move to make based on a given Solitare 
 There are a few things to still be done for this project:
 - Debug web interface
 - Add back the 10 card (accidentally made 12 cards instead of 13 🫥)
-- Train AI on separate thread (if game and trainer are decoupled enough)
-  - Report this state to website (i.e. training in progress + training done)
+- Add status on website to show AI training progress
   
 ### Lower-priority todos
 - Figure out github pages
