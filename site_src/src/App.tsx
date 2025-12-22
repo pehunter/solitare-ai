@@ -94,7 +94,7 @@ const App = () => {
 
     //Attempt to perform a move
     async function makeMove(move: Move) {
-        fetch(`https://${stem}/move`, {
+        fetch(`https://${stem}/act/move`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -110,7 +110,7 @@ const App = () => {
 
     //Manage game instances
     async function startGame() {
-        fetch(`https://${stem}/start`, {
+        fetch(`https://${stem}/act/start`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -131,7 +131,7 @@ const App = () => {
 
     //Train the model
     async function trainModel() {
-        fetch(`https://${stem}/train`, {
+        fetch(`https://${stem}/act/train`, {
             method: "POST",
             body: ""
         })
