@@ -1,8 +1,4 @@
 import React from 'react';
-import Tableau, { Tableau_Data } from './Tableau';
-import Pile from './Pile';
-import Foundation, {Foundation_Data} from './Foundation';
-import Card, { Card_Data, Card_Highlight } from './Card';
 
 export type AccList = {
     "cmd": number,

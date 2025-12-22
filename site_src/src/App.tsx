@@ -58,22 +58,24 @@ const App = () => {
     const [ai_foundation, setAIFoundation] = useState<number>(-1);
     const [ai_acc, setAIAcc] = useState<AccList>(getBlankAccList());
     const [ai_quality, setAIQuality] = useState<number>(0);
+    const [stem, setURLStem] = useState<string>("localhost:8888");
 
     async function getGameState() {
-        fetch(`http://localhost:8888/get/state`)
-        .then((data: Response) =>data.json())
+        fetch(`https://${stem}/get/state`)
+        .then((data: Response) =>  {
+            return data.json()})
         .then((jsonData: any) => {
             if(jsonData == undefined || "error" in jsonData)
                 setGameState(getBlankGame());
             else
                 setGameState(jsonData as GameState);
         })
-        .catch((rsn: any) => alert(rsn))
+        .catch((rsn: any) => alert(":(" + rsn))
     }
 
     //Get next move from AI
     async function getAIMove() {
-        return fetch(`http://localhost:8888/get/ai_move`)
+        return fetch(`https://${stem}/get/ai_move`)
         .then((data: Response) =>data.json())
         .then((jsonData: any) => {
             if(jsonData == undefined || "error" in jsonData) {
@@ -92,7 +94,7 @@ const App = () => {
 
     //Attempt to perform a move
     async function makeMove(move: Move) {
-        fetch(`http://localhost:8888/move`, {
+        fetch(`https://${stem}/move`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -108,7 +110,7 @@ const App = () => {
 
     //Manage game instances
     async function startGame() {
-        fetch(`http://localhost:8888/start`, {
+        fetch(`https://${stem}/start`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -124,12 +126,12 @@ const App = () => {
             } else
                 alert(jsonData["error"]);
         })
-        .catch((rsn: any) => alert(rsn))
+        // .catch((rsn: any) => alert(rsn))
     }
 
     //Train the model
     async function trainModel() {
-        fetch(`http://localhost:8888/train`, {
+        fetch(`https://${stem}/train`, {
             method: "POST",
             body: ""
         })
@@ -140,12 +142,12 @@ const App = () => {
             } else
                 alert(jsonData);
         })
-        .catch((rsn: any) => alert(rsn))
+        // .catch((rsn: any) => alert(rsn))
     }
 
     //Get AI accuracies
     async function getAccuracy() {
-        fetch(`http://localhost:8888/get/ai_acc`)
+        fetch(`https://${stem}/get/ai_acc`)
         .then((data: Response) =>data.json())
         .then((jsonData: any) => {
             if("error" in jsonData)
@@ -153,7 +155,7 @@ const App = () => {
             else
                 setAIAcc(jsonData as AccList);
         })
-        .catch((rsn: any) => alert(rsn))
+        // .catch((rsn: any) => alert(rsn))
     }
 
     //JSlop function
@@ -293,7 +295,15 @@ const App = () => {
         getAccuracy();
     }
 
-    useEffect(() => {refresh()}, []);
+    useEffect(() => {
+        setURLStem(window.location.href.split('/')[2]);
+    }, []);
+    
+    //Refresh on stem change
+    useEffect(() => {
+        // alert(stem);
+        refresh()
+    }, [stem])
  
     return (
       <div style={{position: 'absolute', width: '100%'}} onMouseMove={(e) => captureMouse(e)}>

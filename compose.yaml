@@ -1,13 +1,11 @@
 services:
-  server:
+  game:
     build: ./game_server
     develop:
       watch:
         - action: sync
           path: ./game_server
           target: /usr/src/app
-    ports:
-      - "8888:8000"
     volumes:
       - type: bind
         source: ./data
@@ -15,3 +13,12 @@ services:
       - type: bind
         source: ./model
         target: /usr/src/app/model
+  nginx:
+    build: ./nginx
+    develop:
+      watch:
+        - action: sync
+          path: ./nginx/public
+          target: /public
+    ports:
+      - "25565:80"

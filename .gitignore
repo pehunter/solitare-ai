@@ -3,3 +3,4 @@ what.py
 __pycache__
 site_src/node_modules
 site_src/package-lock.json
+nginx/public/*
