@@ -6,6 +6,7 @@ A Python AI Model that predicts the best move to make based on a given Solitare 
 - Fully functional/playable solitare game
 - Flask API that handles gameplay and reports game state & the predicted best move, running as a Gunicorn server.
 - React/TS graphical web interface for the game and predicted move.
+- Docker-compose file to launch app
 
 ## Structure
 **data**: The .csv files used to train the model.
@@ -16,11 +17,9 @@ A Python AI Model that predicts the best move to make based on a given Solitare 
 ## Todos
 There are a few things to still be done for this project:
 - Debug web interface
-- Create nginx container to serve website and interface with backend gunicorn container
 - Add back the 10 card (accidentally made 12 cards instead of 13 🫥)
 - Train AI on separate thread (if game and trainer are decoupled enough)
   - Report this state to website (i.e. training in progress + training done)
-- Determine where production build of site will go
 
 ### Lower-priority todos
 - Figure out github pages
