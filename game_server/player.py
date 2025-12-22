@@ -3,7 +3,7 @@
 
 from game import Game, Card
 from colorama import Fore, Back, Style
-from ai import extract, genCols, AIPlayer, get48Card, get48Idx
+from ai import extract, genCols, AIPlayer, get52Card, get52Idx
 import pandas as pd
 import json
 import random
@@ -117,7 +117,7 @@ def findAllMoves(data: dict):
                     "cmd": "pt",
                     "to": c + 1
                 })
-        elif pile != None and pile.value == 12:
+        elif pile != None and pile.value == 13:
             moveList.append({
                 "cmd": "pt",
                 "to": c + 1
@@ -263,7 +263,7 @@ def decipherMove(pred_move: dict, available: list, game_state: dict, log: Log):
     
     match pred_move["cmd"]:
         case 'tt':
-            pred_to = nearestCard(get48Card(pred_move["to"]), game_state)
+            pred_to = nearestCard(get52Card(pred_move["to"]), game_state)
 
             #Determine from
 
@@ -295,7 +295,7 @@ def decipherMove(pred_move: dict, available: list, game_state: dict, log: Log):
 
         #ft suit to
         case 'ft':
-            pred_to = nearestCard(get48Card(pred_move["to"]), game_state)
+            pred_to = nearestCard(get52Card(pred_move["to"]), game_state)
 
             #Check which foundation cards can make the move
             for foundation in game_state["foundation"]:
@@ -311,7 +311,7 @@ def decipherMove(pred_move: dict, available: list, game_state: dict, log: Log):
         #tc to
         #pt to
         case 'pt' | 'tc':
-            pred_to = nearestCard(get48Card(pred_move["to"]), game_state)
+            pred_to = nearestCard(get52Card(pred_move["to"]), game_state)
             move = {
                 "cmd": pred_move["cmd"],
                 "to": pred_to
@@ -342,11 +342,11 @@ def fuzzy(game_state: dict, move: dict):
     match move["cmd"]:
         case 'tt' | 'tc' | 'ft' | 'pt':
             if len(game_state["tableau"][move["to"] - 1]) == 0:
-                fuzzymove["to"] = 48
+                fuzzymove["to"] = 52
             else:
                 cardinfo = game_state["tableau"][move["to"] - 1][-1]
                 card = Card(cardinfo["suit"], cardinfo["value"])
-                fuzzymove["to"] = get48Idx(card)
+                fuzzymove["to"] = get52Idx(card)
 
     return fuzzymove
 

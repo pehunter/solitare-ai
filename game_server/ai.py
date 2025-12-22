@@ -11,33 +11,34 @@ import numpy as np
 from sklearn import linear_model, model_selection, metrics
 import joblib
 
-#Get the card's index in a 48 equation
-def get48Idx(card: Card):
-    return card.suit*12 + (card.value - 1)
+#Get the card's index in a 52 equation
+def get52Idx(card: Card):
+    return card.suit*13 + (card.value - 1)
 
-#Get card from the 48 index
-def get48Card(index: int):
-    if index == 48:
+#Get card from the 52 index
+def get52Card(index: int):
+    if index == 52:
         return Card(0,0)
 
-    suit = int(index/12)
-    value = (index % 12) + 1
+    suit = int(index/13)
+    value = (index % 13) + 1
     return Card(suit, value)
 
-def get48Title(index: int):
-    suit = int(index/12)
+def get52Title(index: int):
+    suit = int(index/13)
     match suit:
         case 0: suit = 'H'
         case 1: suit = 'S'
         case 2: suit = 'D'
         case 3: suit = 'C'
     
-    value = (index % 12) + 1
+    value = (index % 13) + 1
     match value:
         case 1: value = 'A'
-        case 10: value = 'J'
-        case 11: value = 'Q'
-        case 12: value = 'K'
+        case 10: value = 'X'
+        case 11: value = 'J'
+        case 12: value = 'Q'
+        case 13: value = 'K'
         case _: value = value
     return f"{suit}{value}"
 
@@ -45,8 +46,8 @@ def get48Title(index: int):
 def genCols():
     #Generate columns
     cols = []
-    for c in range(0, 48):
-        t = get48Title(c)
+    for c in range(0, 52):
+        t = get52Title(c)
         cols.append(f"Bottom_{t}")
         cols.append(f"Top_{t}")
         cols.append(f"Move_{t}")
@@ -59,15 +60,14 @@ def genCols():
 
 #Extract data from game state.
 #Data is:
-# 1. All end cards at bottom of stack (48) ✔️
-# 2. All cards at top of stack (48) ✔️
-# 3. All movable cards (48) ✔️
-# 4. Collected cards (48) ✔️
-# 5. Top of foundation (48) ✔️
-# 6. Top of pile (48) ✔️
-# 7. Cards in draw? (1) ✔️
-# 8. Empty space available? (1) ✔️
-# 9. All discovered cards (A NUMBER)
+# 1. All end cards at bottom of stack (52)
+# 2. All cards at top of stack (52)
+# 3. All movable cards (52)
+# 4. Collected cards (52)
+# 5. Top of foundation (52)
+# 6. Top of pile (52)
+# 7. Cards in draw? (1)
+# 8. Empty space available? (1)
 def extract(data: dict) -> pd.Series:
     cols = genCols()
     cardData = pd.Series(data=np.zeros(len(cols), dtype=np.int8), index=cols)
@@ -78,18 +78,18 @@ def extract(data: dict) -> pd.Series:
         if len(col) > 0:
             #Set bottom card
             bottom = Card(col[-1]["suit"], col[-1]["value"])
-            cardData["Bottom_"+get48Title(get48Idx(bottom))]= 1
+            cardData["Bottom_"+get52Title(get52Idx(bottom))]= 1
 
             #Set top card
             x = 0
             while "hidden" in col[x]:
                 x = x + 1
             top = Card(col[x]["suit"], col[x]["value"])
-            cardData["Top_"+get48Title(get48Idx(top))]= 1
+            cardData["Top_"+get52Title(get52Idx(top))]= 1
             #Get middle cards
             while x < len(col):
                 middle = Card(col[x]["suit"], col[x]["value"])
-                cardData["Move_"+get48Title(get48Idx(middle))]= 1
+                cardData["Move_"+get52Title(get52Idx(middle))]= 1
                 x = x + 1
         else:
             empty = True
@@ -98,14 +98,14 @@ def extract(data: dict) -> pd.Series:
         val = data["foundation"][suit]["value"]
         for z in range(1, val + 1):
             card = Card(data["foundation"][suit]["suit"], z)
-            cardData["Collect_"+get48Title(get48Idx(card))]= 1
+            cardData["Collect_"+get52Title(get52Idx(card))]= 1
         if(val > 0):
             card = Card(data["foundation"][suit]["suit"], val)
-            cardData["Foundation_"+get48Title(get48Idx(card))]= 1
+            cardData["Foundation_"+get52Title(get52Idx(card))]= 1
 
     if(data["pile"] != False):
         pile = Card(data["pile"]["suit"], data["pile"]["value"])
-        cardData["Pile_"+get48Title(get48Idx(pile))]= 1
+        cardData["Pile_"+get52Title(get52Idx(pile))]= 1
     
     if(data["draw"]):
         draw = True
@@ -164,6 +164,7 @@ def trainModel(cmd: str, outCol: str):
 
 # Load a model from a saved file
 def loadModel(cmd: str):
+    return None, 0
     logr = joblib.load(f"model/{cmd}.pkl")
     
     #Get accuracy
@@ -212,10 +213,11 @@ class AIPlayer():
 
     #Predict next move based on game state
     def nextMove(self, gameState: pd.DataFrame):
-        cmd = self.cmdModel.predict(gameState)
-
         #What to do
         move = {}
+        return move
+
+        cmd = self.cmdModel.predict(gameState)
 
         match cmd:
             #'tt'

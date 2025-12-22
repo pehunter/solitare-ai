@@ -45,10 +45,12 @@ class Card():
             case 1:
                 valstr = 'A'
             case 10:
-                valstr = 'J'
+                valstr = 'X'
             case 11:
-                valstr = 'Q'
+                valstr = 'J'
             case 12:
+                valstr = 'Q'
+            case 13:
                 valstr = 'K'
             case _:
                 valstr = str(self.value)
@@ -97,12 +99,12 @@ class Game():
         self.initGame()
 
     #Initializes a game.
-    #There are 12 different values for a card (A, 2-9, J, Q, K) and 4 suits (H, S, D, C) = 48 cards in a game
+    #There are 13 different values for a card (A, 2-10!!, J, Q, K) and 4 suits (H, S, D, C) = 52 cards in a game
     def initGame(self):
         #Add all cards to an array
         cards = []
         for suit in range(0,4):
-            for value in range(1, 13):
+            for value in range(1, 14):
                 cards.append(Card(suit, value))
         
         #Generate random card
@@ -186,7 +188,7 @@ class Game():
 
     # Determine if card [card] can be added to column [to]
     def canMove(self, to, card: Card) -> bool:
-        return (len(self.tableau[to]) > 0 and self.tableau[to][-1].tryAdd(card)) or (len(self.tableau[to]) == 0 and card.value == 12)
+        return (len(self.tableau[to]) > 0 and self.tableau[to][-1].tryAdd(card)) or (len(self.tableau[to]) == 0 and card.value == 13)
 
     #Moves cards between tableau columns.
     #[ct] cards move from column [frm] to column [to]
@@ -239,7 +241,7 @@ class Game():
     #Check if the game was won
     def win(self):
         for suit in self.foundation:
-            if self.foundation[suit].value != 12:
+            if self.foundation[suit].value != 13:
                 return False
         return True
 
