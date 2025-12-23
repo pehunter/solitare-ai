@@ -6,6 +6,7 @@ from colorama import Fore
 # from player import chooseMove
 import pprint
 import random
+import os.path
 import pandas as pd
 import numpy as np
 from sklearn import linear_model, model_selection, metrics
@@ -164,7 +165,10 @@ def trainModel(cmd: str, outCol: str):
 
 # Load a model from a saved file
 def loadModel(cmd: str):
-    return None, 0
+    #If no pkl file, return none.
+    if(not os.path.isfile(f"model/{cmd}.pkl")):
+        return None, 0
+
     logr = joblib.load(f"model/{cmd}.pkl")
     
     #Get accuracy
@@ -214,8 +218,11 @@ class AIPlayer():
     #Predict next move based on game state
     def nextMove(self, gameState: pd.DataFrame):
         #What to do
-        move = {}
-        return move
+        move = {'cmd': '-'}
+        
+        #If cmdModel is None, then the model didn't load properly.
+        if(self.cmdModel == None):
+            return move
 
         cmd = self.cmdModel.predict(gameState)
 
@@ -275,9 +282,15 @@ class AIPlayer():
                     self.tcData = pd.concat([self.tcData, subcmdState.to_frame().T])
 
     #Save data to CSVs
+    def trySave(self, fpath: str, frame: pd.DataFrame):
+        if os.path.isfile(fpath):
+            frame.to_csv(fpath, mode='a', header=False)
+        else:
+            frame.to_csv(fpath, mode='w', header=True)
+
     def save(self):
-        self.cmdData.to_csv("data/cmd.csv", mode='a', header=False)
-        self.ttData.to_csv("data/tt.csv", mode='a', header=False)
-        self.tcData.to_csv("data/tc.csv", mode='a', header=False)
-        self.ptData.to_csv("data/pt.csv", mode='a', header=False)
-        self.ftData.to_csv("data/ft.csv", mode='a', header=False)
+        self.trySave("data/cmd.csv", self.cmdData)
+        self.trySave("data/tt.csv", self.ttData)
+        self.trySave("data/tc.csv", self.tcData)
+        self.trySave("data/pt.csv", self.ptData)
+        self.trySave("data/ft.csv", self.ftData)

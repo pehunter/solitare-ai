@@ -58,13 +58,13 @@ const Card = (input: {data: Card_Data, highlight: Card_Highlight, select: (data:
             case 1:
                 val = "A";
                 break;
-            case 10:
+            case 11:
                 val = "J";
                 break;
-            case 11:
+            case 12:
                 val = "Q";
                 break;
-            case 12:
+            case 13:
                 val = "K";
                 break;
             default:

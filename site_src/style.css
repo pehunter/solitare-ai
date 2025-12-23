@@ -1,5 +1,6 @@
 body {
-    background-color: #a4a4a4;
+    background-image: linear-gradient(135deg, #92bda3 25%, #87b599 25%, #87b599 50%, #92bda3 50%, #92bda3 75%, #87b599 75%, #87b599);
+    background-size: 1em 1em;
 }
 
 body * {
@@ -127,7 +128,7 @@ body * {
 }
 
 .hidden {
-    background: conic-gradient(from 45deg, #cecece 0deg 90deg, #7e7e7e 90deg 180deg, #cecece 180deg 270deg, #7e7e7e 270deg 360deg);
+    background: conic-gradient(from 45deg, #8caacd 0deg 90deg, #374f67 90deg 180deg, #8caacd  180deg 270deg, #374f67  270deg 360deg);
     background-size: 0.8em 0.8em;
     border: 1px solid black;
 }

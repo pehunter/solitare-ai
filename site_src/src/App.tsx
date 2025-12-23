@@ -61,7 +61,7 @@ const App = () => {
     const [stem, setURLStem] = useState<string>("localhost:8888");
 
     async function getGameState() {
-        fetch(`https://${stem}/get/state`)
+        fetch(`http://${stem}/get/state`)
         .then((data: Response) =>  {
             return data.json()})
         .then((jsonData: any) => {
@@ -75,7 +75,7 @@ const App = () => {
 
     //Get next move from AI
     async function getAIMove() {
-        return fetch(`https://${stem}/get/ai_move`)
+        return fetch(`http://${stem}/get/ai_move`)
         .then((data: Response) =>data.json())
         .then((jsonData: any) => {
             if(jsonData == undefined || "error" in jsonData) {
@@ -94,7 +94,7 @@ const App = () => {
 
     //Attempt to perform a move
     async function makeMove(move: Move) {
-        fetch(`https://${stem}/act/move`, {
+        fetch(`http://${stem}/act/move`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -110,7 +110,7 @@ const App = () => {
 
     //Manage game instances
     async function startGame() {
-        fetch(`https://${stem}/act/start`, {
+        fetch(`http://${stem}/act/start`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -131,7 +131,7 @@ const App = () => {
 
     //Train the model
     async function trainModel() {
-        fetch(`https://${stem}/act/train`, {
+        fetch(`http://${stem}/act/train`, {
             method: "POST",
             body: ""
         })
@@ -147,7 +147,7 @@ const App = () => {
 
     //Get AI accuracies
     async function getAccuracy() {
-        fetch(`https://${stem}/get/ai_acc`)
+        fetch(`http://${stem}/get/ai_acc`)
         .then((data: Response) =>data.json())
         .then((jsonData: any) => {
             if("error" in jsonData)

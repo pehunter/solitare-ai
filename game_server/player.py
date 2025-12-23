@@ -53,7 +53,7 @@ def getMoves(card: Card, freeCards: list[Card | bool]) -> list[int]:
     for t, freeCard in enumerate(freeCards):
         isCard = isinstance(freeCard, Card)
         #Kings
-        if (not isCard and card.value == 12) or (isCard and freeCard.tryAdd(card)):
+        if (not isCard and card.value == 13) or (isCard and freeCard.tryAdd(card)):
             moves.append(t)
     return moves
 
@@ -385,6 +385,9 @@ class Instance():
     def __init__(self):
         self.running = False
         print("inited")
+    
+    def printGame(self):
+        self.__game.printGame()
 
     def refreshState(self):
         self.__state = self.__game.json()
@@ -471,7 +474,7 @@ def main():
         if not inst.running:
             inst.createNewInstance()
         
-        inst.__game.printGame()
+        inst.printGame()
         move = moveFromInput(input().strip().split(' '))
         outcome = inst.turn(move)
 
