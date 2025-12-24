@@ -58,6 +58,7 @@ const App = () => {
     const [ai_foundation, setAIFoundation] = useState<number>(-1);
     const [ai_acc, setAIAcc] = useState<AccList>(getBlankAccList());
     const [ai_quality, setAIQuality] = useState<number>(0);
+    const [ai_training, setAITraining] = useState<bool>(false);
     const [stem, setURLStem] = useState<string>("localhost:8888");
 
     async function getGameState() {
@@ -70,7 +71,7 @@ const App = () => {
             else
                 setGameState(jsonData as GameState);
         })
-        .catch((rsn: any) => alert(":(" + rsn))
+        .catch((rsn: any) => console.log(rsn))
     }
 
     //Get next move from AI
@@ -85,11 +86,30 @@ const App = () => {
             } else {
                 setAIQuality(jsonData.accuracy);
                 setAIMove(jsonData.actual_move);
-                console.log(jsonData.actual_move);
                 return true;
             }
         })
         .catch((rsn: any) => setAIMove(getBlankMove()))
+    }
+
+    //Return true if AI is finished training, and false otherwise.
+    async function getAITraining() {
+        return fetch(`http://${stem}/get/ai_training`)
+        .then((data: Response) => data.json())
+        .then((jsonData: any) => {
+            if(typeof jsonData["msg"] == "string" && jsonData["msg"].includes("Ready"))
+                return true;
+            else
+                return false;
+        })
+        .catch((rsn: any) => false)
+    }
+
+    async function pollAI() {
+        if (await getAITraining()) {
+            setAITraining(false);
+        } else
+            setTimeout(pollAI, 1000);
     }
 
     //Attempt to perform a move
@@ -103,8 +123,8 @@ const App = () => {
         }).then((resp: Response) => resp.json())
         .then((results: any) => {
             if(results.won)
-                alert("You won")
-            setTimeout(refresh, 25);
+                alert("You won!!")
+            refresh();
         }).catch((reason: any) => console.log(reason))
     }
 
@@ -121,12 +141,13 @@ const App = () => {
         .then((data: Response) =>data.json())
         .then((jsonData: any) => {
             if("msg" in jsonData) {
-                alert(jsonData["msg"]);
-                setTimeout(refresh, 25);
+                console.log(jsonData["msg"]);
+                refresh();
+                getAccuracy();
             } else
-                alert(jsonData["error"]);
+                console.log(jsonData["error"]);
         })
-        // .catch((rsn: any) => alert(rsn))
+        .catch((rsn: any) => console.log(rsn))
     }
 
     //Train the model
@@ -138,11 +159,12 @@ const App = () => {
         .then((data: Response) =>data.json())
         .then((jsonData: any) => {
             if("msg" in jsonData) {
-                alert(jsonData["msg"]);
+                setAITraining(true);
+                pollAI();
             } else
-                alert(jsonData);
+                console.log(jsonData);
         })
-        // .catch((rsn: any) => alert(rsn))
+        .catch((rsn: any) => console.log(rsn))
     }
 
     //Get AI accuracies
@@ -151,11 +173,11 @@ const App = () => {
         .then((data: Response) =>data.json())
         .then((jsonData: any) => {
             if("error" in jsonData)
-                alert(jsonData["error"]);
+                console.log(jsonData["error"]);
             else
                 setAIAcc(jsonData as AccList);
         })
-        // .catch((rsn: any) => alert(rsn))
+        .catch((rsn: any) => console.log(rsn))
     }
 
     //JSlop function
@@ -271,7 +293,6 @@ const App = () => {
             setOffX(offsetX);
             setOffY(offsetY);
             setSelectedPos(cp);
-            console.log("selected..");
           }
 
           //Second selection: do things here
@@ -292,7 +313,6 @@ const App = () => {
     function refresh() {
         getGameState()
         getAIMove()
-        getAccuracy();
     }
 
     useEffect(() => {
@@ -301,7 +321,6 @@ const App = () => {
     
     //Refresh on stem change
     useEffect(() => {
-        // alert(stem);
         refresh()
     }, [stem])
  
@@ -309,8 +328,8 @@ const App = () => {
       <div style={{position: 'absolute', width: '100%'}} onMouseMove={(e) => captureMouse(e)}>
         <div className="top">
             <Pile draw_data={state.draw} pile_data={state.pile} card_sel={cardSelected} sel_pos={selectedPos} ai_move={aiMove} set_ai_foundation={setAIFoundation}/>
-            <button id="start" onClick={startGame}>Start</button>
-            <button id="train" onClick={trainModel}>Train</button>
+            <button id="start" onClick={startGame} disabled={ai_training}>Start</button>
+            <button id="train" onClick={trainModel} disabled={ai_training}>Train</button>
             <Foundation foundation_data={state.foundation} card_sel={cardSelected} sel_pos={selectedPos} ai_move={aiMove} ai_foundation={ai_foundation}/>
         </div>
         <Tableau tableau_data={state.tableau} card_sel={cardSelected} sel_pos={selectedPos} ai_move={aiMove} set_ai_foundation={setAIFoundation}/>

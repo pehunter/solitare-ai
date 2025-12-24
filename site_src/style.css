@@ -98,6 +98,14 @@ body * {
     box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
 }
 
+button {
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+button:disabled {
+    opacity: 50%;
+}
+
 .card {
     display: grid;
     grid-template-rows: [value] 2em [icon] 1fr [bvalue] 2em;
@@ -179,6 +187,7 @@ button {
     align-self: center;
     border: 2px solid black;
     font-size: 16pt;
+    color: black;
 }
 
 #start {
