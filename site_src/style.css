@@ -65,13 +65,16 @@ body * {
 }
 
 .tableau-col {
-    background-color: white;
     border-radius: 10px;
     width: min-content;
     outline: 1px solid black;
     
     display:flex;
     flex-direction: column;;
+}
+
+.tableau-col .wrapper:not(.blank) {
+    background-color: white;
 }
 
 .wrapper {
