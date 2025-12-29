@@ -14,13 +14,4 @@ A Python AI Model that predicts the best move to make based on a given Solitare 
 **model**: Joblib'd dumps of the last trained model, along with their test accuracy.  
 **game_server**: Contains game, ai trainer, and flask api to interface with these components.  
 **site_src**: Contains source code/package info for web interface.  
-**nginx**: Contains Dockerfile to setup NGINX file, along with config and production build of website  
-  
-## Todos
-There are a few things to still be done for this project:
-- Debug web interface
-  
-### Lower-priority todos
-- Figure out github pages
-- Use AWS or equivalent to host project?
-- Utilize issues instead of README.md todo list
+**nginx**: Contains Dockerfile to setup NGINX file, along with config and production build of website
