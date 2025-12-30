@@ -9,7 +9,7 @@ import random
 import os.path
 import pandas as pd
 import numpy as np
-from sklearn import linear_model, model_selection, metrics
+from sklearn import linear_model, model_selection, metrics, tree
 import joblib
 
 #Get the card's index in a 52 equation
@@ -148,15 +148,19 @@ def trainModel(cmd: str, outCol: str):
     x_train, x_test, y_train, y_test = model_selection.train_test_split(x, y, random_state=612, test_size=0.25, shuffle=True)
 
 
-    #Create LR
-    logr = linear_model.LogisticRegression(max_iter=612)
-    logr.fit(x_train,y_train)
+    #Create model
+    mdl = None
+    if(cmd == "cmd"):
+        mdl = tree.DecisionTreeClassifier()
+    else:
+        mdl = linear_model.LogisticRegression(max_iter=612)
+    mdl.fit(x_train,y_train)
 
     #Save LR
-    joblib.dump(logr, f"model/{cmd}.pkl")
+    joblib.dump(mdl, f"model/{cmd}.pkl")
 
     #Test LR
-    y_pred = logr.predict(x_test)
+    y_pred = mdl.predict(x_test)
     acc = metrics.accuracy_score(y_test, y_pred)
 
     #Save test results
@@ -169,14 +173,14 @@ def loadModel(cmd: str):
     if(not os.path.isfile(f"model/{cmd}.pkl")):
         return None, 0
 
-    logr = joblib.load(f"model/{cmd}.pkl")
+    mdl = joblib.load(f"model/{cmd}.pkl")
     
     #Get accuracy
     acc = -1
     with open(f"model/{cmd}.acc", "r") as file:
         acc = float(file.read())
     
-    return logr, acc
+    return mdl, acc
 
 #Get columns from first line of csv
 def getColumns(csvPath: str):

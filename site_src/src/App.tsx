@@ -58,11 +58,11 @@ const App = () => {
     const [ai_foundation, setAIFoundation] = useState<number>(-1);
     const [ai_acc, setAIAcc] = useState<AccList>(getBlankAccList());
     const [ai_quality, setAIQuality] = useState<number>(0);
-    const [ai_training, setAITraining] = useState<bool>(false);
+    const [ai_training, setAITraining] = useState<boolean>(false);
     const [stem, setURLStem] = useState<string>("localhost:8888");
 
     async function getGameState() {
-        fetch(`http://${stem}/get/state`)
+        fetch(`${stem}/get/state`)
         .then((data: Response) =>  {
             return data.json()})
         .then((jsonData: any) => {
@@ -76,7 +76,7 @@ const App = () => {
 
     //Get next move from AI
     async function getAIMove() {
-        return fetch(`http://${stem}/get/ai_move`)
+        return fetch(`${stem}/get/ai_move`)
         .then((data: Response) =>data.json())
         .then((jsonData: any) => {
             if(jsonData == undefined || "error" in jsonData) {
@@ -94,7 +94,7 @@ const App = () => {
 
     //Return true if AI is finished training, and false otherwise.
     async function getAITraining() {
-        return fetch(`http://${stem}/get/ai_training`)
+        return fetch(`${stem}/get/ai_training`)
         .then((data: Response) => data.json())
         .then((jsonData: any) => {
             if(typeof jsonData["msg"] == "string" && jsonData["msg"].includes("Ready"))
@@ -114,7 +114,7 @@ const App = () => {
 
     //Attempt to perform a move
     async function makeMove(move: Move) {
-        fetch(`http://${stem}/act/move`, {
+        fetch(`${stem}/act/move`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -130,7 +130,7 @@ const App = () => {
 
     //Manage game instances
     async function startGame() {
-        fetch(`http://${stem}/act/start`, {
+        fetch(`${stem}/act/start`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -152,7 +152,7 @@ const App = () => {
 
     //Train the model
     async function trainModel() {
-        fetch(`http://${stem}/act/train`, {
+        fetch(`${stem}/act/train`, {
             method: "POST",
             body: ""
         })
@@ -169,7 +169,7 @@ const App = () => {
 
     //Get AI accuracies
     async function getAccuracy() {
-        fetch(`http://${stem}/get/ai_acc`)
+        fetch(`${stem}/get/ai_acc`)
         .then((data: Response) =>data.json())
         .then((jsonData: any) => {
             if("error" in jsonData)
@@ -316,7 +316,8 @@ const App = () => {
     }
 
     useEffect(() => {
-        setURLStem(window.location.href.split('/')[2]);
+        let splitted = window.location.href.split('/');
+        setURLStem(`${splitted[0]}//${splitted[2]}`);
     }, []);
     
     //Refresh on stem change
